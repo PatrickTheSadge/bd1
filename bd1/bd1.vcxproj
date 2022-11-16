@@ -128,6 +128,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bd1.cpp" />
+    <ClCompile Include="records_generator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="records_generator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
