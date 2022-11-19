@@ -1,32 +1,40 @@
 #include "records_generator.h"
-#include <fstream>
 #include <stdlib.h>
 #include <time.h>
-using namespace std;
+#include "file_writer.h"
 
-records_generator::records_generator(const char* file_name, int record_length, int page_size, int num_of_records)
+records_generator::records_generator(int record_length, int num_of_records, file_writer* writer)
 {
-	this->file_name = file_name;
 	this->record_length = record_length;
-	this->page_size = page_size;
 	this->num_of_records = num_of_records;
+	this->writer = writer;
 }
 
 records_generator::~records_generator()
 {
-
+	delete writer;
 }
 
 void records_generator::generate()
 {
-	ofstream MyFile("filename.txt");
 	srand(time(NULL));
-
-	for (int i = 0; i < this->num_of_records; i++)
+	for (int j = 0; j < num_of_records; j++)
 	{
-		MyFile << rand() % 100 << " ";
-	}
+		int* fields = new int[record_length];
+		int rec_rand = rand() % 6 + 10;
 
-	MyFile.close();
-	printf("done\n");
+		for (int i = 0; i < record_length; i++)
+		{
+			if (i <= rec_rand)
+			{
+				fields[i] = rand() % 100;
+			}
+			else
+			{
+				fields[i] = 0;
+			}
+		}
+		record r = record(fields, record_length);
+		writer->write(&r);
+	}
 }

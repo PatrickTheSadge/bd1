@@ -102,7 +102,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -128,9 +128,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bd1.cpp" />
+    <ClCompile Include="file_manager.cpp" />
+    <ClCompile Include="file_reader.cpp" />
+    <ClCompile Include="file_writer.cpp" />
+    <ClCompile Include="record.cpp" />
     <ClCompile Include="records_generator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="file_manager.h" />
+    <ClInclude Include="file_reader.h" />
+    <ClInclude Include="file_writer.h" />
+    <ClInclude Include="record.h" />
     <ClInclude Include="records_generator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
