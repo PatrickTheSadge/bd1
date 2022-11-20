@@ -21,7 +21,7 @@ void records_generator::generate()
 	for (int j = 0; j < num_of_records; j++)
 	{
 		int* fields = new int[record_length];
-		int rec_rand = rand() % 6 + 10;
+		int rec_rand = rand() % 6 + record_length-6;
 
 		for (int i = 0; i < record_length; i++)
 		{
@@ -36,5 +36,6 @@ void records_generator::generate()
 		}
 		record r = record(fields, record_length);
 		writer->write(&r);
+		//r.print();
 	}
 }

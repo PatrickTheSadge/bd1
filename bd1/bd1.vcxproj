@@ -131,6 +131,7 @@
     <ClCompile Include="file_manager.cpp" />
     <ClCompile Include="file_reader.cpp" />
     <ClCompile Include="file_writer.cpp" />
+    <ClCompile Include="natural_merge_two_plus_one.cpp" />
     <ClCompile Include="record.cpp" />
     <ClCompile Include="records_generator.cpp" />
   </ItemGroup>
@@ -138,6 +139,7 @@
     <ClInclude Include="file_manager.h" />
     <ClInclude Include="file_reader.h" />
     <ClInclude Include="file_writer.h" />
+    <ClInclude Include="natural_merge_two_plus_one.h" />
     <ClInclude Include="record.h" />
     <ClInclude Include="records_generator.h" />
   </ItemGroup>

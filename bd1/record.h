@@ -8,5 +8,7 @@ public:
 	int size;
 	int* fields;
 	char* to_bytes();
+	void print();
+	long long sum();
 };
 

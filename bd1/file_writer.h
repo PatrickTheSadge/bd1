@@ -16,5 +16,6 @@ public:
 	file_writer(const char* file_name, const int block_size);
 	~file_writer();
 	void write(record* r);
+	long long disk_accesses();
 };
 
