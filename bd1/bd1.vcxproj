@@ -128,7 +128,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bd1.cpp" />
-    <ClCompile Include="file_manager.cpp" />
     <ClCompile Include="file_reader.cpp" />
     <ClCompile Include="file_writer.cpp" />
     <ClCompile Include="natural_merge_two_plus_one.cpp" />
@@ -136,7 +135,6 @@
     <ClCompile Include="records_generator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="file_manager.h" />
     <ClInclude Include="file_reader.h" />
     <ClInclude Include="file_writer.h" />
     <ClInclude Include="natural_merge_two_plus_one.h" />

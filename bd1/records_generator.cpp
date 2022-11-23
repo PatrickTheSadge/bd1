@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "file_writer.h"
+#include <chrono>
 
 records_generator::records_generator(int record_length, int num_of_records, file_writer* writer)
 {
@@ -17,7 +18,9 @@ records_generator::~records_generator()
 
 void records_generator::generate()
 {
-	srand(time(NULL));
+	auto now = std::chrono::high_resolution_clock::now();
+	auto timeMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+	srand(timeMillis);
 	for (int j = 0; j < num_of_records; j++)
 	{
 		int* fields = new int[record_length];

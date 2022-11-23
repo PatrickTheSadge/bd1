@@ -4,32 +4,50 @@
 #include <fstream>
 #include <stdio.h>
 
-natural_merge_two_plus_one::natural_merge_two_plus_one(const char* file_name, int block_size, int record_size)
+natural_merge_two_plus_one::natural_merge_two_plus_one(const char* file_name, int block_size, int record_size, bool debug_mode, bool print_start_end)
 {
 	this->file_name = file_name;
 	this->block_size = block_size;
     this->record_size = record_size;
+    this->disk_accesses = 0;
+    this->phases = 0;
+    this->debug_mode = debug_mode;
+    this->print_start_end = print_start_end;
 }
 
-int natural_merge_two_plus_one::sort()
+void natural_merge_two_plus_one::sort()
 {
-    long long disk_accesses = 0;
+    if (debug_mode || print_start_end)
+    {
+        int tmp = 0;
+        record r(NULL, record_size);
+        printf("\n\t\START:\n");
+        file_reader* r_main = new file_reader(file_name, block_size, &tmp);  // tmp cuz i don't want this reader to be counted as disk accessess
+        while (r_main->read(&r))
+        {
+            r.print();
+        }
+        delete r_main;
+    }
     while (true)
     {
+        phases++;
         // #################### SPLIT ####################
-        file_reader* r_main = new file_reader(file_name, block_size);
+        file_reader* r_main = new file_reader(file_name, block_size, &disk_accesses);
 
-        file_writer* t1 = new file_writer("t1.bin", block_size);
-        file_writer* t2 = new file_writer("t2.bin", block_size);
+        file_writer* t1 = new file_writer("t1.bin", block_size, &disk_accesses);
+        file_writer* t2 = new file_writer("t2.bin", block_size, &disk_accesses);
+        int t1_count = 0;
+        int t2_count = 0;
 
         file_writer* tx = t1;
 
         long long last_rec_val = LLONG_MIN;
-        printf("\n\t\tMAIN:\n");
+        if (debug_mode) printf("\n\t\tMAIN:\n");
         record r(NULL, record_size);
         while (r_main->read(&r))
         {
-            r.print();
+            if (debug_mode) r.print();
             long long rec_val = r.sum();
             if (rec_val < last_rec_val)
             {
@@ -38,38 +56,31 @@ int natural_merge_two_plus_one::sort()
                 else            tx = t2;
             }
             tx->write(&r);
+            if (tx == t1)
+                t1_count++;
+            else
+                t2_count++;
             last_rec_val = rec_val;
         }
 
-        disk_accesses = disk_accesses + r_main->disk_accesses() + t1->disk_accesses() + t2->disk_accesses();
         delete r_main;
         delete t1;
         delete t2;
 
-        file_reader* reader_t1 = new file_reader("t1.bin", block_size);
-        file_reader* reader_t2 = new file_reader("t2.bin", block_size);
+        int tmp = 0;
+        file_reader* reader_t1 = new file_reader("t1.bin", block_size, &tmp);
+        file_reader* reader_t2 = new file_reader("t2.bin", block_size, &tmp);
 
-        printf("\n\t\tT1:\n");
-        int t1_count = 0;
-        int t2_count = 0;
+        if (debug_mode) printf("\n\t\tT1:\n");
 
-        while (reader_t1->read(&r))
-        {
-            r.print();
-            t1_count++;
-        }
+        if (debug_mode) while (reader_t1->read(&r)) r.print();
 
-        printf("\n\t\tT2:\n");
-        while (reader_t2->read(&r))
-        {
-            r.print();
-            t2_count++;
-        }
-
-        disk_accesses = disk_accesses + reader_t1->disk_accesses() + reader_t2->disk_accesses();
+        if (debug_mode) printf("\n\t\tT2:\n");
+        if (debug_mode) while (reader_t2->read(&r)) r.print();
 
         delete reader_t1;
         delete reader_t2;
+
 
         if (t1_count == 0 || t2_count == 0 )
         {
@@ -78,9 +89,9 @@ int natural_merge_two_plus_one::sort()
 
         // #################### MERGE ####################
 
-        reader_t1 = new file_reader("t1.bin", block_size);
-        reader_t2 = new file_reader("t2.bin", block_size);
-        file_writer* w_main = new file_writer(file_name, block_size);
+        reader_t1 = new file_reader("t1.bin", block_size, &disk_accesses);
+        reader_t2 = new file_reader("t2.bin", block_size, &disk_accesses);
+        file_writer* w_main = new file_writer(file_name, block_size, &disk_accesses);
 
         // teraz zmergowac 
 
@@ -178,20 +189,20 @@ int natural_merge_two_plus_one::sort()
             }
         }
 
-        disk_accesses = disk_accesses + reader_t1->disk_accesses() + reader_t2->disk_accesses() + w_main->disk_accesses();
         delete reader_t1;
         delete reader_t2;
         delete w_main;
     }
-
-    record r(NULL, record_size);
-    printf("\n\t\tDONE:\n");
-    file_reader* r_main = new file_reader(file_name, block_size);
-    while (r_main->read(&r))
+    if (debug_mode || print_start_end)
     {
-        r.print();
+        int tmp = 0;
+        record r(NULL, record_size);
+        printf("\n\t\tDONE:\n");
+        file_reader* r_main = new file_reader(file_name, block_size, &tmp);  // tmp cuz i don't want this reader to be counted as disk accessess
+        while (r_main->read(&r))
+        {
+            r.print();
+        }
+        delete r_main;
     }
-    delete r_main;
-
-    return disk_accesses;
 }

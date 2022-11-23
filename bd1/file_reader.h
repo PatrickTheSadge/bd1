@@ -13,11 +13,11 @@ private:
 	void read_next_block_from_file();
 	void print_block();
 	bool more_data(int r_size);
+	int* disk_accesses;
 public:
-	file_reader(const char* file_name, const int block_size);
+	file_reader(const char* file_name, const int block_size, int* disk_accesses);
 	~file_reader();
 	bool read(record* r);
-	long long disk_accesses();
 };
 
 

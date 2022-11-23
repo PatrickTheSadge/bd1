@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <fstream>
 
-file_writer::file_writer(const char* file_name, const int block_size)
+file_writer::file_writer(const char* file_name, const int block_size, int* disk_accesses)
 {
+	this->disk_accesses = disk_accesses;
 	this->file_name = file_name;
 	this->block_size = block_size;
 	this->block = new char[block_size];
@@ -17,10 +18,10 @@ file_writer::~file_writer()
 {
 	if (block_capacity >= 4)
 	{
-		block[block_index] = 0x80;
+		block[block_index] = 0;
 		block[block_index + 1] = 0;
 		block[block_index + 2] = 0;
-		block[block_index + 3] = 0;
+		block[block_index + 3] = 0x80;
 		block_index+=4;
 		block_capacity-=4;
 		//printf("{0x80 0x00 0x00 0x00 => no more records}");
@@ -41,6 +42,7 @@ file_writer::~file_writer()
 	}
 	delete block;
 	//printf("\nFile writer accesses: %d\n", file_accesses);
+	(*disk_accesses) += file_accesses;
 }
 
 void file_writer::write(record* r)
@@ -80,9 +82,4 @@ void file_writer::push_block_to_file()
 	block_index = 0;
 	//printf("\nPUSH");
 	file.close();
-}
-
-long long file_writer::disk_accesses()
-{
-	return file_accesses;
 }

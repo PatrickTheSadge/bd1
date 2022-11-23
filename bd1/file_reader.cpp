@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include "record.h"
 
-file_reader::file_reader(const char* file_name, const int block_size)
+file_reader::file_reader(const char* file_name, const int block_size, int* disk_accesses)
 {
+	this->disk_accesses = disk_accesses;
 	this->file_size = 0;
 	this->file_name = file_name;
 	this->block_size = block_size;
@@ -24,6 +25,7 @@ file_reader::~file_reader()
 {
 	delete block;
 	//printf("\nFile reader accesses: %I64d\n", file_accesses);
+	(*disk_accesses) += file_accesses;
 }
 
 void file_reader::read_next_block_from_file()
@@ -78,17 +80,12 @@ bool file_reader::more_data(int r_size)
 												return false;
 	else if (file_next_block_pos == file_size && block_index > block_size - r_size)
 												return false;
-	else if (block[block_index] == -128 &&
+	else if (block[block_index] == 0x00 &&
 			block[block_index + 1] == 0x00 &&
 			block[block_index + 2] == 0x00 &&
-			block[block_index + 3] == 0x00)
+			block[block_index + 3] == -128)
 												return false;
 	
 
 	return true;
-}
-
-long long file_reader::disk_accesses()
-{
-	return file_accesses;
 }
