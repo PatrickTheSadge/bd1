@@ -29,9 +29,14 @@ void natural_merge_two_plus_one::sort()
         }
         delete r_main;
     }
-    while (true)
+
+    bool sorted = false;
+
+    while (!sorted)
     {
+        sorted = true;
         phases++;
+        if (debug_mode) printf("\n\t\t=====PHASE %d=====", phases);
         // #################### SPLIT ####################
         file_reader* r_main = new file_reader(file_name, block_size, &disk_accesses);
 
@@ -101,11 +106,13 @@ void natural_merge_two_plus_one::sort()
         bool t1_more = reader_t1->read(&t1_record);
         bool t2_more = reader_t2->read(&t2_record);
 
-        long long t1_rec_sum = t1_record.sum();
-        long long t2_rec_sum = t2_record.sum();
+        long long t1_sum;
+        long long t2_sum;
 
-        long long t1_rec_last_sum = t1_rec_sum;
-        long long t2_rec_last_sum = t2_rec_sum;
+        bool t1_series_new = false;
+        bool t2_series_new = false;
+
+        long long last_saved_rec_sum = LLONG_MIN;
 
         //printf("\n\t\tALSO main:\n");
         while (t1_more || t2_more)
@@ -118,6 +125,8 @@ void natural_merge_two_plus_one::sort()
                     do
                     {
                         w_main->write(&t2_record);
+                        if (t2_record.sum() < last_saved_rec_sum) sorted = false;
+                        last_saved_rec_sum = t2_record.sum();
                         //t2_record.print();
                     } while (t2_more = reader_t2->read(&t2_record));
                     break;
@@ -127,65 +136,83 @@ void natural_merge_two_plus_one::sort()
                     do
                     {
                         w_main->write(&t1_record);
+                        if (t1_record.sum() < last_saved_rec_sum) sorted = false;
+                        last_saved_rec_sum = t1_record.sum();
                         //t1_record.print();
                     }while (t1_more = reader_t1->read(&t1_record));
                     break;
                 }
             }
+            t1_sum = t1_record.sum();
+            t2_sum = t2_record.sum();
 
-            if (t1_rec_sum >= t1_rec_last_sum && t2_rec_sum >= t2_rec_last_sum)
+            if (!t1_series_new && !t2_series_new)
             {
-                if (t1_rec_sum < t2_rec_sum) // t1 is smaller -> write t1 to main
+                if (t1_sum < t2_sum) // t1 is smaller -> write t1 to main
                 {
+                    if (t1_sum < last_saved_rec_sum) sorted = false;
+                    last_saved_rec_sum = t1_sum;
                     w_main->write(&t1_record);
                     //t1_record.print();
-                    t1_rec_last_sum = t1_rec_sum;
                     t1_more = reader_t1->read(&t1_record);
-                    t1_rec_sum = t1_record.sum();
+                    long long new_sum = t1_record.sum();
+                    if (new_sum < t1_sum) t1_series_new = true;
                 }
                 else                        // t2 is smaller -> write t2 to main
                 {
+                    if (t2_sum < last_saved_rec_sum) sorted = false;
+                    last_saved_rec_sum = t2_sum;
                     w_main->write(&t2_record);
                     //t2_record.print();
-                    t2_rec_last_sum = t2_rec_sum;
                     t2_more = reader_t2->read(&t2_record);
-                    t2_rec_sum = t2_record.sum();
+                    long long new_sum = t2_record.sum();
+                    if (new_sum < t2_sum) t2_series_new = true;
                 }
             }
-            else if (t1_rec_sum < t1_rec_last_sum && t2_rec_sum >= t2_rec_last_sum) // t1 series end
+            else if (t1_series_new && !t2_series_new) // t1 series end
             {
+                if (t2_sum < last_saved_rec_sum) sorted = false;
+                last_saved_rec_sum = t2_sum;
                 w_main->write(&t2_record);
                 //t2_record.print();
-                t2_rec_last_sum = t2_rec_sum;
                 t2_more = reader_t2->read(&t2_record);
-                t2_rec_sum = t2_record.sum();
+                long long new_sum = t2_record.sum();
+                if (new_sum < t2_sum) t2_series_new = true;
             }
-            else if (t1_rec_sum >= t1_rec_last_sum && t2_rec_sum < t2_rec_last_sum) // t2 series end
+            else if (!t1_series_new && t2_series_new) // t2 series end
             {
+                if (t1_sum < last_saved_rec_sum) sorted = false;
+                last_saved_rec_sum = t1_sum;
                 w_main->write(&t1_record);
                 //t1_record.print();
-                t1_rec_last_sum = t1_rec_sum;
                 t1_more = reader_t1->read(&t1_record);
-                t1_rec_sum = t1_record.sum();
+                long long new_sum = t1_record.sum();
+                if (new_sum < t1_sum) t1_series_new = true;
             }
-            else if (t1_rec_sum < t1_rec_last_sum && t2_rec_sum < t2_rec_last_sum)
+            else if (t1_series_new && t2_series_new) // both series end
             {
-                if (t1_rec_sum < t2_rec_sum) // t1 is smaller -> write t1 to main
+                t1_series_new = false;
+                t2_series_new = false;
+                if (t1_sum < t2_sum) // t1 is smaller -> write t1 to main
                 {
+                    if (t1_sum < last_saved_rec_sum) sorted = false;
+                    last_saved_rec_sum = t1_sum;
                     w_main->write(&t1_record);
                     //t1_record.print();
                     t1_more = reader_t1->read(&t1_record);
-                    t1_rec_sum = t1_record.sum();
+                    long long new_sum = t1_record.sum();
+                    if (new_sum < t1_sum) t1_series_new = true;
                 }
                 else                        // t2 is smaller -> write t2 to main
                 {
+                    if (t2_sum < last_saved_rec_sum) sorted = false;
+                    last_saved_rec_sum = t2_sum;
                     w_main->write(&t2_record);
                     //t2_record.print();
                     t2_more = reader_t2->read(&t2_record);
-                    t2_rec_sum = t2_record.sum();
+                    long long new_sum = t2_record.sum();
+                    if (new_sum < t2_sum) t2_series_new = true;
                 }
-                t1_rec_last_sum = t1_rec_sum;   // reset series
-                t2_rec_last_sum = t2_rec_sum;   // reset series
             }
         }
 
